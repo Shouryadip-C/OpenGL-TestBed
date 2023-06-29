@@ -2,6 +2,12 @@ set(
   OPENGL_TESTBED_SRC_FILES
   main.cpp
   Core.cpp
+  Renderer.cpp
+  VertexArray.cpp
+  VertexBuffer.cpp
+  IndexBuffer.cpp
+  Shader.cpp
+  Texture.cpp
 )
 
 set(
@@ -10,6 +16,13 @@ set(
   Core.h
   Settings.h
   Glfw.h
+  Renderer.h
+  VertexArray.h
+  VertexBuffer.h
+  VertexBufferLayout.h
+  IndexBuffer.h
+  Shader.h
+  Texture.h
 )
 
 add_executable(opengl_testbed ${OPENGL_TESTBED_SRC_FILES} ${OPENGL_TESTBED_HEADER_FILES})
@@ -37,3 +50,10 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+# *** Copy resources directory to the build directory
+add_custom_command(
+  TARGET opengl_testbed POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/res"
+        $<TARGET_FILE_DIR:opengl_testbed>/../res
+)
