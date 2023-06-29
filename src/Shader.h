@@ -36,4 +36,5 @@ public:
     void setUniform1i(const std::string &name, const int i);
     void setUniform1f(const std::string &name, const float f);
     void setUniform4f(const std::string &name, const float v0, const float v1, const float v2, const float v3);
+    void setUniformMat4f(const std::string &name, const int count, const bool transpose, const float *data);
 };

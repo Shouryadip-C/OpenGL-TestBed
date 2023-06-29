@@ -182,3 +182,8 @@ void Shader::setUniform4f(const std::string &name, const float v0, const float v
 {
     GL_CALL(glUniform4f(getUniformLocation(name), v0, v1, v2, v3));
 }
+
+void Shader::setUniformMat4f(const std::string &name, const int count, const bool transpose, const float *data)
+{
+    GL_CALL(glUniformMatrix4fv(getUniformLocation(name), count, transpose, data));
+}

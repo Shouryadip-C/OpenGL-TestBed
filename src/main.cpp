@@ -11,6 +11,9 @@
 #include "VertexBufferLayout.h"
 
 // Third party headers
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/imgui.h>
@@ -25,6 +28,8 @@
 
 
 global_var bool  g_fillTriangles{ false };
+global_var bool  g_render3DExamples{ false };
+global_var bool  g_showDemoWindow{ false };
 global_var float g_visibilityRatio{ 0.0f };
 
 
@@ -54,6 +59,16 @@ internal void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        g_showDemoWindow = true;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        g_render3DExamples = false;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        g_render3DExamples = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_SPACE) != GLFW_REPEAT) {
         if (!g_fillTriangles) {
@@ -154,6 +169,7 @@ int main()
 
         // enable blending
         GL_CALL(glEnable(GL_BLEND));
+        GL_CALL(glEnable(GL_DEPTH_TEST));
         GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
         // Creating the shader program
@@ -171,7 +187,7 @@ int main()
         // Vertex and index buffers and vertex data
         float vertices[]{
             // x    y     z    |     colors      | tex coords
-            0.0f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f,  // top middle
+            0.0f,  0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.5f, 1.0f,  // top middle
             0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
             -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // top left
@@ -197,18 +213,64 @@ int main()
         va.addBuffer(vb, layout);
         va.addBuffer(ib);
 
+        // 3D Cube stuff ------------------------------------------------------------------------ //
+        Shader cubeShader("../res/shader/cube_shader.glsl");
+        cubeShader.bind();
+        cubeShader.setUniform1i("u_texture1", 0);
+        cubeShader.setUniform1i("u_texture2", 1);
+
+        float cubeVertices[]{ -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+                              1.0f,  1.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  -0.5f,
+                              -0.5f, -0.5f, 0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  1.0f,
+                              0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  -0.5f, 0.5f,
+                              0.5f,  0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,
+                              -0.5f, 0.5f,  -0.5f, 1.0f,  1.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f, -0.5f, -0.5f,
+                              0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  1.0f,  0.0f,  0.5f,
+                              0.5f,  0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,
+                              1.0f,  0.5f,  -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  0.0f,  0.5f,  0.5f,
+                              0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  1.0f,
+                              0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  0.5f,  -0.5f, 0.5f,  1.0f,  0.0f,  -0.5f, -0.5f, 0.5f,
+                              0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  1.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.5f,
+                              0.5f,  -0.5f, 1.0f,  1.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,
+                              0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f };
+
+        glm::vec3 cubePositions[]{ glm::vec3(0.0f, 0.0f, 0.0f),    glm::vec3(2.0f, 5.0f, -15.0f),
+                                   glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f),
+                                   glm::vec3(2.4f, -0.4f, -3.5f),  glm::vec3(-1.7f, 3.0f, -7.5f),
+                                   glm::vec3(1.3f, -2.0f, -2.5f),  glm::vec3(1.5f, 2.0f, -2.5f),
+                                   glm::vec3(1.5f, 0.2f, -1.5f),   glm::vec3(-1.3f, 1.0f, -1.5f) };
+
+        VertexArray        vaCube;
+        VertexBuffer       vbCube(&cubeVertices, 5 * 6 * 6 * sizeof(float));
+        VertexBufferLayout cubeVbLayout;
+        cubeVbLayout.push<float>(3);
+        cubeVbLayout.push<float>(2);
+        vaCube.addBuffer(vbCube, cubeVbLayout);
+
+
+        // * renderer
         Renderer renderer;
         renderer.setClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 
-        // unbind the currently bound VBO and VAO
-        // NOTE: Unbind the VAO before any other buffers as VAO stores unbind calls too
-        // GL_CALL(glBindVertexArray(0));
-        // GL_CALL(glUseProgram(0));
-        // GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
-        // GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-        // Our state
-        bool showDemoWindow{ true };
+        // Math stuff --------------------------------------------------------------------------- //
+        // glm::mat4 trans = glm::mat4(1.0f);
+        // trans           = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+        // trans           = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+        // * 3D rendering
+        glm::mat4 view{ glm::mat4(1.0f) };
+        // note that we're translating the scene in the reverse direction of where we want to move
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+        glm::mat4 proj3D;
+        proj3D = glm::perspective(glm::radians(60.0f), (float)settings::windowWidth / (float)settings::windowHeight,
+                                  0.1f, 100.0f);
+        // proj3D = glm::ortho(-9.0f, 9.0f, -6.0f, 6.0f, 0.0f, 50.0f);
+
+        glm::mat4 proj2D{ glm::mat4(1.0f) };
+        proj2D = glm::ortho(-2.0f, 2.0f, -2.0f, 2.0f, -1.0f, 1.0f);
+
 
         // Loop until the user closes the window
         while (!glfwWindowShouldClose(window)) {
@@ -218,23 +280,61 @@ int main()
             // Render --------------------------------------------------------------------------- //
             renderer.clear();
 
-            // set the color uniform
-            basicShader.bind();
+            if (!g_render3DExamples) {
+                // set the color uniform
+                basicShader.bind();
+                // float timeValue{ static_cast<float>(glfwGetTime()) };
+                // float greenValue{ (std::sin(timeValue) / 2.0f) + 0.5f };
+                // NOTE: bind the shader program to use before calling this or glUniform4f
+                // might throw error: 'ERROR 1282 in glUniform4f'
+                // basicShader.setUniform4f("u_color", 0.0f, greenValue, 0.0f, 1.0f);
 
-            // NOTE: bind the shader program to use before calling this or glUniform4f
-            // might throw error: 'ERROR 1282 in glUniform4f'
-            basicShader.setUniform1f("u_percent", g_visibilityRatio);
+                basicShader.setUniformMat4f("u_projection", 1, GL_FALSE, glm::value_ptr(proj2D));
 
-            // render the triangles
-            renderer.draw(va, basicShader, 6, 3);
+                // transform the image
+                basicShader.setUniform1f("u_percent", g_visibilityRatio);
+                glm::mat4 trans2{ glm::mat4(1.0f) };
+                float     scale{ std::sinf((float)glfwGetTime()) };
+                trans2 = glm::scale(trans2, glm::vec3(scale, scale, 1));
+                trans2 = glm::translate(trans2, glm::vec3(-0.5f, 0.5f, 0.0f));
+                trans2 = glm::rotate(trans2, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+                basicShader.setUniformMat4f("u_transform", 1, GL_FALSE, glm::value_ptr(trans2));
+                renderer.draw(va, basicShader, 3, 0);
+
+                // transform the image
+                basicShader.setUniform1f("u_percent", 1 - g_visibilityRatio);
+                glm::mat4 trans{ glm::mat4(1.0f) };
+                trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+                trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+                basicShader.setUniformMat4f("u_transform", 1, GL_FALSE, glm::value_ptr(trans));
+                renderer.draw(va, basicShader, 6, 3);
+            }
+            else {
+                // sending data to shader
+                cubeShader.bind();
+                cubeShader.setUniform1f("u_percent", g_visibilityRatio);
+                cubeShader.setUniformMat4f("u_view", 1, GL_FALSE, glm::value_ptr(view));
+                cubeShader.setUniformMat4f("u_projection", 1, GL_FALSE, glm::value_ptr(proj3D));
+
+                for (int i = 0; i < 10; i++) {
+                    glm::mat4 model{ glm::mat4(1.0f) };
+                    model = glm::translate(model, cubePositions[i]);
+                    float angle{ 20.0f * i - 30.0f };
+                    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 1.0f, 0.0f));
+                    cubeShader.setUniformMat4f("u_model", 1, GL_FALSE, glm::value_ptr(model));
+                    // renderer.draw(vaCube, cubeShader, 6 * 5, 6);
+                    renderer.draw(vaCube, cubeShader);
+                }
+            }
+
 
             // Render imgui window -------------------------------------------------------------- //
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            if (showDemoWindow) {
-                ImGui::ShowDemoWindow(&showDemoWindow);
+            if (g_showDemoWindow) {
+                ImGui::ShowDemoWindow(&g_showDemoWindow);
             }
 
             ImGui::Render();

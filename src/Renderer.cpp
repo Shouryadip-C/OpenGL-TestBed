@@ -8,7 +8,7 @@ Renderer::~Renderer() {}
 
 void Renderer::clear() const
 {
-    GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void Renderer::setClearColor(const float r, const float g, const float b, const float a) const
@@ -20,12 +20,22 @@ void Renderer::draw(const VertexArray &va, const Shader &shader) const
 {
     shader.bind();
     va.bind();
-    GL_CALL(glDrawElements(GL_TRIANGLES, va.getIndexCount(), GL_UNSIGNED_INT, nullptr));
+    if (va.getIndexCount()) {
+        GL_CALL(glDrawElements(GL_TRIANGLES, va.getIndexCount(), GL_UNSIGNED_INT, nullptr));
+    }
+    else {
+        GL_CALL(glDrawArrays(GL_TRIANGLES, 0, va.getVertexCount()));
+    }
 }
 
-void Renderer::draw(const VertexArray &va, const Shader &shader, unsigned int drawCount, unsigned int indexOffset) const
+void Renderer::draw(const VertexArray &va, const Shader &shader, unsigned int drawCount, unsigned int startIndex) const
 {
     shader.bind();
     va.bind();
-    GL_CALL(glDrawElements(GL_TRIANGLES, drawCount, GL_UNSIGNED_INT, (void *)(indexOffset * sizeof(unsigned int))));
+    if (va.getIndexCount()) {
+        GL_CALL(glDrawElements(GL_TRIANGLES, drawCount, GL_UNSIGNED_INT, (void *)(startIndex * sizeof(unsigned int))));
+    }
+    else {
+        GL_CALL(glDrawArrays(GL_TRIANGLES, startIndex, drawCount));
+    }
 }

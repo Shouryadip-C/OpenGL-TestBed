@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-VertexArray::VertexArray() : m_indexCount(0)
+VertexArray::VertexArray() : m_indexCount(0), m_vertexCount(0)
 {
     GL_CALL(glGenVertexArrays(1, &m_rendererID));
 }
@@ -18,6 +18,7 @@ void VertexArray::addBuffer(const VertexBuffer &vb, const VertexBufferLayout &la
 {
     bind();
     vb.bind();
+    m_vertexCount = vb.getBufferSize() / layout.getStride();
 
     const auto  &elements{ layout.getElements() };
     unsigned int offset{ 0 };
