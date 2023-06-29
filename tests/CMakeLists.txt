@@ -4,6 +4,7 @@ set(
   TestClearColor.cpp
   TestCubes.cpp
   Test2DTransforms.cpp
+  TestCamera.cpp
 )
 
 set(
@@ -12,6 +13,7 @@ set(
   TestClearColor.h
   TestCubes.h
   Test2DTransforms.h
+  TestCamera.h
 )
 
 add_library(tests STATIC ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})

@@ -11,6 +11,7 @@
 #include "VertexBufferLayout.h"
 #include "tests/Test.h"
 #include "tests/Test2DTransforms.h"
+#include "tests/TestCamera.h"
 #include "tests/TestClearColor.h"
 #include "tests/TestCubes.h"
 
@@ -33,6 +34,8 @@
 
 global_var bool g_fillTriangles{ false };
 global_var bool g_showDemoWindow{ false };
+global_var tests::Test *g_currentTest{ nullptr };
+global_var tests::TestMenu *g_testMenu{ nullptr };
 
 
 // function opengl calls every time an error occurs
@@ -54,6 +57,30 @@ internal void framebufferResizeCallback(GLFWwindow *window, int width, int heigh
 {
     // set the opengl render area
     GL_CALL(glViewport(0, 0, width, height));
+}
+
+
+internal void cursorPosCallback(GLFWwindow *window, double xPos, double yPos)
+{
+    if (g_currentTest) {
+        g_currentTest->processMouseMovement(window, xPos, yPos);
+    }
+}
+
+
+internal void mouseScrollCallback(GLFWwindow *window, double xPos, double yPos)
+{
+    if (g_currentTest) {
+        g_currentTest->processMouseScroll(window, xPos, yPos);
+    }
+}
+
+
+internal void mouseClickCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    if (g_currentTest) {
+        g_currentTest->processMouseClick(window, button, action, mods);
+    }
 }
 
 
@@ -106,6 +133,9 @@ int main()
 
     // set the resize window function callback
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+    glfwSetCursorPosCallback(window, cursorPosCallback);
+    glfwSetScrollCallback(window, mouseScrollCallback);
+    glfwSetMouseButtonCallback(window, mouseClickCallback);
 
     // centering the window
     GLFWmonitor       *monitor = glfwGetPrimaryMonitor();
@@ -153,13 +183,13 @@ int main()
     // Imgui setup END -------------------------------------------------------------------------- //
 
     // Setup the test menu and tests
-    tests::Test     *currentTest{ nullptr };
-    tests::TestMenu *testMenu{ new tests::TestMenu(currentTest) };
-    currentTest = testMenu;
+    g_testMenu    = new tests::TestMenu(g_currentTest);
+    g_currentTest = g_testMenu;
 
-    testMenu->registerTest<tests::TestClearColor>("Clear Color");
-    testMenu->registerTest<tests::Test2DTransforms>("2D Transformations");
-    testMenu->registerTest<tests::TestCubes>("3D Rotating Cubes");
+    g_testMenu->registerTest<tests::TestClearColor>("Clear Color");
+    g_testMenu->registerTest<tests::Test2DTransforms>("2D Transformations");
+    g_testMenu->registerTest<tests::TestCubes>("3D Rotating Cubes");
+    g_testMenu->registerTest<tests::TestCamera>("Movable 3D Camera");
 
     // enable blending
     GL_CALL(glEnable(GL_BLEND));
@@ -170,11 +200,22 @@ int main()
     Renderer renderer;
     renderer.setClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 
+    // Our state
+    bool  setCallbacks{ true };
+    float currentFrameTime{};
+    float lastFrameTime{};
+    float dt{};
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
+        // Calculate deltatime for framerate independent movement
+        currentFrameTime = glfwGetTime();
+        dt               = (currentFrameTime - lastFrameTime) * 1000;
+        lastFrameTime    = currentFrameTime;
+
         // Process keyboard input --------------------------------------------------------------- //
         processInput(window);
+        g_currentTest->processInput(window, dt);
 
         // Render ------------------------------------------------------------------------------- //
         renderer.clear();
@@ -184,20 +225,20 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        if (currentTest) {
-            currentTest->onUpdate(0.0f);
-            currentTest->onRender();
+        if (g_currentTest) {
+            g_currentTest->onUpdate(dt);
+            g_currentTest->onRender();
 
             ImGui::Begin("Test Menu", 0, settings::windowFlags);
-            currentTest->onImGuiRender();
+            g_currentTest->onImGuiRender();
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            if (currentTest != testMenu
+            if (g_currentTest != g_testMenu
                 && ImGui::Button("Back To Main Menu", ImVec2(-FLT_MIN, 1.2 * ImGui::GetTextLineHeightWithSpacing())))
             {
-                delete currentTest;
-                currentTest = testMenu;
+                delete g_currentTest;
+                g_currentTest = g_testMenu;
             }
             ImGui::Checkbox("Show Demo Window", &g_showDemoWindow);
             ImGui::End();
@@ -226,9 +267,9 @@ int main()
     }
 
     // TODO: Deallocate all objects after use --------------------------------------------------- //
-    delete currentTest;
-    if (currentTest != testMenu) {
-        delete testMenu;
+    delete g_currentTest;
+    if (g_currentTest != g_testMenu) {
+        delete g_testMenu;
     }
 
     // Cleanup

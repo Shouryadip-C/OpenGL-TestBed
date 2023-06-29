@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Glfw.h"
+
 #include <functional>
 #include <string>
 #include <vector>
@@ -13,6 +15,10 @@ public:
     Test() {}
     virtual ~Test() {}
 
+    virtual void processMouseClick(GLFWwindow *window, int button, int action, int mods) {}
+    virtual void processMouseMovement(GLFWwindow *window, float xPos, float yPos) {}
+    virtual void processMouseScroll(GLFWwindow *window, float xPos, float yPos) {}
+    virtual void processInput(GLFWwindow *window, float deltaTime) {}
     virtual void onUpdate(float deltaTime) {}
     virtual void onRender() {}
     virtual void onImGuiRender() {}

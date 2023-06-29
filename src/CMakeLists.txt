@@ -8,6 +8,7 @@ set(
   IndexBuffer.cpp
   Shader.cpp
   Texture.cpp
+  Camera.cpp
 )
 
 set(
@@ -23,6 +24,7 @@ set(
   IndexBuffer.h
   Shader.h
   Texture.h
+  Camera.h
 )
 
 add_executable(opengl_testbed ${OPENGL_TESTBED_SRC_FILES} ${OPENGL_TESTBED_HEADER_FILES})
