@@ -36,6 +36,7 @@ set_target_properties(
 
 target_link_libraries(
   opengl_testbed
+  tests
   glad
   glm
   glfw
@@ -51,8 +52,12 @@ target_include_directories(
 )
 
 # *** Copy resources directory to the build directory
+# copying the imgui.ini file restores the layout of the imgui viewports previously used
 add_custom_command(
   TARGET opengl_testbed POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/res/imgui.ini"
+        $<TARGET_FILE_DIR:opengl_testbed>
   COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/res"
         $<TARGET_FILE_DIR:opengl_testbed>/../res

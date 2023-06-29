@@ -16,4 +16,5 @@ endif()
 
 # Add target subdirectories -------------------------------------------------- #
 add_subdirectory(extern)
+add_subdirectory(tests)
 add_subdirectory(src)

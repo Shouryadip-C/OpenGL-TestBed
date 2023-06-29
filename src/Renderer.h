@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IndexBuffer.h"
 #include "Shader.h"
 #include "VertexArray.h"
 
@@ -11,8 +12,8 @@ public:
     Renderer();
     ~Renderer();
 
-    void clear() const;
-    void setClearColor(const float r, const float g, const float b, const float a) const;
-    void draw(const VertexArray &va, const Shader &shader) const;
-    void draw(const VertexArray &va, const Shader &shader, unsigned int drawCount, unsigned int startIndex = 0) const;
+    static void clear();
+    static void setClearColor(const float r, const float g, const float b, const float a);
+    static void draw(const VertexArray &va, const Shader &shader);
+    static void draw(const VertexArray &va, const Shader &shader, unsigned int drawCount, unsigned int startIndex = 0);
 };
