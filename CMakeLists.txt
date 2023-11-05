@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20..3.25)
+cmake_minimum_required(VERSION 3.25)
 
 # Set the project name and language ------------------------------------------ #
 project(OpenGL_TestBed LANGUAGES CXX C)

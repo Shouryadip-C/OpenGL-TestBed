@@ -10,6 +10,7 @@ Texture::Texture(const std::filesystem::path &path)
   : m_rendererID(0), m_filePath(path), m_localBuffer(nullptr), m_width(0), m_height(0), m_BPP(0)
 {
     stbi_set_flip_vertically_on_load(1);
+    // TODO: Fix runtime errors when building on windows with mingw clang compiler
     m_localBuffer = stbi_load(path.string().c_str(), &m_width, &m_height, &m_BPP, 4);
 
     GL_CALL(glGenTextures(1, &m_rendererID));

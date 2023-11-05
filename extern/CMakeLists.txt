@@ -58,5 +58,3 @@ target_include_directories(
   PUBLIC  ${IMGUI_DIR}
           ${IMGUI_DIR}/backends
 )
-
-

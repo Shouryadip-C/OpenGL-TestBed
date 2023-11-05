@@ -7,8 +7,7 @@
 #define DEBUG_BREAK() psnip_trap()
 
 #define ASSERT(x) \
-    if (!(x))     \
-        DEBUG_BREAK();
+    if (!(x)) DEBUG_BREAK();
 
 #if defined(_DEBUG) || defined(DEBUG)
     #define GL_CALL(x)   \

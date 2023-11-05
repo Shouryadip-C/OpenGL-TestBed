@@ -86,11 +86,7 @@ internal void mouseClickCallback(GLFWwindow *window, int button, int action, int
 
 internal void processInput(GLFWwindow *window)
 {
-    if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         g_showDemoWindow = true;
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_SPACE) != GLFW_REPEAT) {
