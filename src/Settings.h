@@ -7,7 +7,7 @@ namespace settings {
 
 inline constexpr int              windowWidth{ 1200 };
 inline constexpr int              windowHeight{ 800 };
-inline constexpr ImGuiWindowFlags windowFlags{ ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize };
+inline constexpr ImGuiWindowFlags windowFlags{};
 
 namespace camera {
     inline constexpr float mouseSensitivity{ 0.1f };
