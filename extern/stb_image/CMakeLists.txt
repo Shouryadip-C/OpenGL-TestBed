@@ -6,6 +6,7 @@ set(
 set(
   STB_IMAGE_HEADER_FILES
   stb_image.h
+  stb_image_write.h
 )
 
 add_library(stb_image STATIC ${STB_IMAGE_SOURCE_FILES} ${STB_IMAGE_HEADER_FILES})

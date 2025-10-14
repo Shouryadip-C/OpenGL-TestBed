@@ -3,6 +3,7 @@
 #include "Glfw.h"
 #include "IndexBuffer.h"
 #include "Renderer.h"
+#include "ScreenshotManager.h"
 #include "Settings.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -32,8 +33,9 @@
 #define local_persist static
 
 
-global_var bool g_fillTriangles{ false };
-global_var bool g_showDemoWindow{ false };
+global_var bool              g_fillTriangles{ false };
+global_var bool              g_showDemoWindow{ false };
+global_var ScreenshotManager g_screenShotManager{ nullptr };
 global_var tests::Test *g_currentTest{ nullptr };
 global_var tests::TestMenu *g_testMenu{ nullptr };
 
@@ -86,10 +88,24 @@ internal void mouseClickCallback(GLFWwindow *window, int button, int action, int
 
 internal void processInput(GLFWwindow *window)
 {
+    static bool wasF12Pressed   = false;
+    static bool wasSpacePressed = false;
+    bool        isF12Down       = glfwGetKey(window, GLFW_KEY_F12) == GLFW_PRESS;
+    bool        isSpaceDown     = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
+
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         g_showDemoWindow = true;
     }
-    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_SPACE) != GLFW_REPEAT) {
+    else if (isF12Down && !wasF12Pressed) {
+        bool result = g_screenShotManager.captureScreenshot();
+        if (result) {
+            // TODO: Show notification of saved screenshot
+        }
+        else {
+            // TODO: Show notification containing error message
+        }
+    }
+    else if (isSpaceDown && !wasSpacePressed) {
         if (!g_fillTriangles) {
             GL_CALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
             g_fillTriangles = true;
@@ -99,6 +115,10 @@ internal void processInput(GLFWwindow *window)
             g_fillTriangles = false;
         }
     }
+
+    // Update current state of keys
+    wasF12Pressed   = isF12Down;
+    wasSpacePressed = isSpaceDown;
 }
 
 
@@ -126,6 +146,9 @@ int main()
         glfwTerminate();
         return -1;
     }
+
+    // Configure which window to take screenshot from
+    g_screenShotManager.setWindow(window);
 
     // set the resize window function callback
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);

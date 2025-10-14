@@ -9,6 +9,7 @@ set(
   Shader.cpp
   Texture.cpp
   Camera.cpp
+  ScreenshotManager.cpp
 )
 
 set(
@@ -25,6 +26,7 @@ set(
   Shader.h
   Texture.h
   Camera.h
+  ScreenshotManager.h
 )
 
 add_executable(opengl_testbed ${OPENGL_TESTBED_SRC_FILES} ${OPENGL_TESTBED_HEADER_FILES})
@@ -63,4 +65,6 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/res"
         $<TARGET_FILE_DIR:opengl_testbed>/../res
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+        $<TARGET_FILE_DIR:opengl_testbed>/../screenshots
 )
