@@ -10,6 +10,8 @@ set(
   Texture.cpp
   Camera.cpp
   ScreenshotManager.cpp
+  Mesh.cpp
+  Model.cpp
 )
 
 set(
@@ -27,6 +29,8 @@ set(
   Texture.h
   Camera.h
   ScreenshotManager.h
+  Mesh.h
+  Model.h
 )
 
 add_executable(opengl_testbed ${OPENGL_TESTBED_SRC_FILES} ${OPENGL_TESTBED_HEADER_FILES})
@@ -45,7 +49,9 @@ target_link_libraries(
   glm
   glfw
   imgui
+  ImGuiFileDialog
   stb_image
+  assimp
   ${OPENGL_LIBRARIES}
 )
 
@@ -53,6 +59,8 @@ target_include_directories(
   opengl_testbed
   PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_SOURCE_DIR}/extern/assimp/include
+    ${CMAKE_BINARY_DIR}/extern/assimp/include
 )
 
 # *** Copy resources directory to the build directory

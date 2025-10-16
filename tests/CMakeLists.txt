@@ -5,6 +5,7 @@ set(
   TestCubes.cpp
   Test2DTransforms.cpp
   TestCamera.cpp
+  TestModels.cpp
 )
 
 set(
@@ -14,6 +15,7 @@ set(
   TestCubes.h
   Test2DTransforms.h
   TestCamera.h
+  TestModels.h
 )
 
 add_library(tests STATIC ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
@@ -41,4 +43,6 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/extern/assimp/include
+    ${CMAKE_BINARY_DIR}/extern/assimp/include
 )

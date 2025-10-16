@@ -52,9 +52,41 @@ set(
 )
 
 add_library(imgui STATIC ${IMGUI_SOURCE_FILES} ${IMGUI_HEADER_FILES})
-target_link_libraries(imgui glfw)
+if(UNIX)
+    find_package(X11 REQUIRED)
+    if(X11_FOUND)
+        target_include_directories(imgui PUBLIC ${X11_INCLUDE_DIR})
+        target_link_libraries(imgui PUBLIC ${X11_LIBRARIES})
+    endif()
+endif()
+
+target_link_libraries(imgui PUBLIC glfw)
 target_include_directories(
   imgui
   PUBLIC  ${IMGUI_DIR}
           ${IMGUI_DIR}/backends
 )
+
+# GLM ------------------------------------------------------------------------ #
+set(IMGUI_FILE_DIALOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog)
+add_library(ImGuiFileDialog
+    ${IMGUI_FILE_DIALOG_DIR}/ImGuiFileDialog.cpp
+    ${IMGUI_FILE_DIALOG_DIR}/ImGuiFileDialog.h
+    ${IMGUI_FILE_DIALOG_DIR}/ImGuiFileDialogConfig.h
+)
+
+target_link_libraries(ImGuiFileDialog PUBLIC imgui)
+
+# Use generator expressions for proper include directory handling
+target_include_directories(ImGuiFileDialog
+    PUBLIC
+        $<BUILD_INTERFACE:${IMGUI_FILE_DIALOG_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
+
+if(UNIX)
+    target_compile_options(ImGuiFileDialog PUBLIC -Wno-unknown-pragmas)
+endif()
+
+# GLM ------------------------------------------------------------------------ #
+add_subdirectory(assimp)

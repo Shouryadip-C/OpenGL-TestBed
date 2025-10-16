@@ -5,13 +5,47 @@
 
 #include <iostream>
 
+unsigned int loadTextureFromFile(const std::filesystem::path &path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int            width, height, nrComponents;
+    unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+    if (data) {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
 
 Texture::Texture(const std::filesystem::path &path)
-  : m_rendererID(0), m_filePath(path), m_localBuffer(nullptr), m_width(0), m_height(0), m_BPP(0)
+  : m_rendererID(0), m_filePath(path), m_width(0), m_height(0), m_BPP(0)
 {
     stbi_set_flip_vertically_on_load(1);
     // TODO: Fix runtime errors when building on windows with mingw clang compiler
-    m_localBuffer = stbi_load(path.string().c_str(), &m_width, &m_height, &m_BPP, 4);
+    unsigned char *data = stbi_load(path.string().c_str(), &m_width, &m_height, &m_BPP, 4);
 
     GL_CALL(glGenTextures(1, &m_rendererID));
     GL_CALL(glBindTexture(GL_TEXTURE_2D, m_rendererID));
@@ -21,9 +55,8 @@ Texture::Texture(const std::filesystem::path &path)
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
-    if (m_localBuffer) {
-        GL_CALL(
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_localBuffer));
+    if (data) {
+        GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
         GL_CALL(glGenerateMipmap(GL_TEXTURE_2D));
     }
     else {
@@ -32,8 +65,8 @@ Texture::Texture(const std::filesystem::path &path)
     }
     GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
 
-    if (m_localBuffer) {
-        stbi_image_free(m_localBuffer);
+    if (data) {
+        stbi_image_free(data);
     }
 }
 

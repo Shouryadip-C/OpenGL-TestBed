@@ -15,6 +15,7 @@
 #include "tests/TestCamera.h"
 #include "tests/TestClearColor.h"
 #include "tests/TestCubes.h"
+#include "tests/TestModels.h"
 
 // Third party headers
 #include <glm/glm.hpp>
@@ -209,6 +210,7 @@ int main()
     g_testMenu->registerTest<tests::Test2DTransforms>("2D Transformations");
     g_testMenu->registerTest<tests::TestCubes>("3D Rotating Cubes");
     g_testMenu->registerTest<tests::TestCamera>("Movable 3D Camera");
+    g_testMenu->registerTest<tests::TestModels>("Model Loading");
 
     // enable blending
     GL_CALL(glEnable(GL_BLEND));

@@ -40,6 +40,7 @@ Test2DTransforms::Test2DTransforms()
     m_shader->setUniform1i("u_texture1", 0);
     m_shader->setUniform1i("u_texture2", 1);
 
+    // clang-format off
     // Vertex and index buffers and vertex data
     float vertices[]{
         // x    y     z    |     colors      | tex coords
@@ -48,18 +49,30 @@ Test2DTransforms::Test2DTransforms()
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom left
         -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,  // top left
         0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // top right
+        // Hexagon
+        -0.5f,  0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.75f,  // left top
+        -0.5f, -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.25f,  // left bottom
+        0.5f,   0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.75f,  // right top
+        0.5f,  -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.25f,  // right bottom
+        0.0f,   -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 0.0f,  // bottom middle
     };
 
     unsigned int indices[]{
         0, 1, 2,  // first triangle
         1, 2, 3,  // second triangle
-        3, 4, 1   // third triangle
+        3, 4, 1,   // third triangle
+        // Hexagon
+        0, 5, 6,
+        6, 9, 0,
+        0, 7, 8,
+        8, 9, 0
     };
+    // clang-format on
 
     m_VAO = std::make_unique<VertexArray>();
-    unsigned int buffSize{ 8 * 5 * sizeof(float) };
+    unsigned int buffSize{ 8 * 10 * sizeof(float) };
     m_vertexBuffer = std::make_unique<VertexBuffer>(vertices, buffSize);
-    m_indexBuffer  = std::make_unique<IndexBuffer>(indices, 9);
+    m_indexBuffer  = std::make_unique<IndexBuffer>(indices, 21);
 
     VertexBufferLayout layout;
     layout.push<float>(3);  // vertex position
@@ -110,6 +123,13 @@ void Test2DTransforms::onRender()
     transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
     m_shader->setUniformMat4f("u_transform", 1, GL_FALSE, glm::value_ptr(transform));
     Renderer::draw(*m_VAO, *m_shader, 6, 3);
+
+    // Render Hexagon
+    transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, glm::vec3(0.0f, -1.5f, 0.0f));
+    m_shader->setUniformMat4f("u_transform", 1, GL_FALSE, glm::value_ptr(transform));
+    m_shader->setUniform1f("u_percent", 0.0f);
+    Renderer::draw(*m_VAO, *m_shader, 12, 9);
 }
 
 void Test2DTransforms::onImGuiRender()
