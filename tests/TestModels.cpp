@@ -7,6 +7,7 @@
 #include "VertexBufferLayout.h"
 
 // external
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui/imgui.h>
@@ -23,6 +24,8 @@ TestModels::TestModels()
     m_lastXPos(0.0f),
     m_lastYPos(0.0f),
     m_lastScroll(0.0f),
+    m_objFilePath("../res/models/backpack/backpack.obj"),
+    m_proj2D(glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 20.0f)),
     m_proj3D(glm::perspective(glm::radians(settings::camera::zoom),
                               (float)settings::windowWidth / (float)settings::windowHeight,
                               0.1f,
@@ -32,7 +35,7 @@ TestModels::TestModels()
 {
     m_shader = std::make_unique<Shader>("../res/shader/model_shader.glsl");
 
-    m_model = std::make_unique<Model>("../res/models/backpack/backpack.obj");
+    m_model = std::make_unique<Model>(m_objFilePath);
 
     Renderer::setClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 }
@@ -41,7 +44,7 @@ TestModels::~TestModels() {}
 
 void TestModels::processMouseClick(GLFWwindow *window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS && action != GLFW_REPEAT) {
+    if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS && action != GLFW_REPEAT) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwSetCursorPos(window, m_lastXPos, m_lastYPos);
         m_mouseCaptured = true;
@@ -129,6 +132,36 @@ void TestModels::onImGuiRender()
     ImGui::SliderFloat("Camera Speed", &m_camera.movementSpeed, 0.01f, 0.05f);
     ImGui::Spacing();
     ImGui::SliderFloat("Camera Zoom", &m_camera.zoom, 10.0f, 90.0f);
+    ImGui::Spacing();
+
+    // Render a button to open the file dialog
+    if (ImGui::Button("Choose Obj File")) {
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",  // dialog key
+                                                "Choose a File",     // title
+                                                ".*",                // filter (accept all)
+                                                { "../" }            // starting directory
+        );
+    }
+    ImGui::Spacing();
+
+    // Display file dialog when it's open
+    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            m_objFilePath = ImGuiFileDialog::Instance()->GetFilePathName();
+        }
+
+        m_model = std::make_unique<Model>(m_objFilePath);
+
+        // must be called to close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    // Show selected file path
+    if (!m_objFilePath.empty()) {
+        ImGui::Text("Selected File:");
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", m_objFilePath.filename().c_str());
+    }
     ImGui::Spacing();
 }
 

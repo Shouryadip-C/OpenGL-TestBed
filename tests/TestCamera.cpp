@@ -80,7 +80,7 @@ TestCamera::~TestCamera() {}
 
 void TestCamera::processMouseClick(GLFWwindow *window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS && action != GLFW_REPEAT) {
+    if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS && action != GLFW_REPEAT) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwSetCursorPos(window, m_lastXPos, m_lastYPos);
         m_mouseCaptured = true;

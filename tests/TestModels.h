@@ -30,6 +30,7 @@ private:
     double                                m_lastXPos;
     double                                m_lastYPos;
     double                                m_lastScroll;
+    std::filesystem::path                 m_objFilePath;
     glm::mat4                             m_proj2D;
     glm::mat4                             m_proj3D;
     std::vector<std::unique_ptr<Texture>> m_textures;

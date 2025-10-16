@@ -40,7 +40,7 @@ _deps
 *.slo
 *.lo
 *.o
-*.obj
+build/*.obj
 
 # Precompiled Headers
 *.gch
@@ -65,3 +65,6 @@ _deps
 *.exe
 *.out
 *.app
+
+# Allow 3d model objs
+!res/models/*.obj
