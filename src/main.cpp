@@ -1,4 +1,5 @@
 // Local headers
+#include "Clock.h"
 #include "Core.h"
 #include "Glfw.h"
 #include "IndexBuffer.h"
@@ -37,6 +38,7 @@
 global_var bool              g_fillTriangles{ false };
 global_var bool              g_showDemoWindow{ false };
 global_var ScreenshotManager g_screenShotManager{ nullptr };
+global_var Clock             g_clock;
 global_var tests::Test *g_currentTest{ nullptr };
 global_var tests::TestMenu *g_testMenu{ nullptr };
 
@@ -222,21 +224,28 @@ int main()
     renderer.setClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 
     // Our state
-    bool  setCallbacks{ true };
-    float currentFrameTime{};
-    float lastFrameTime{};
-    float dt{};
+    float currFps{ g_clock.getFps() };
+    float timeElapsed{ 0 };
+    bool  limitFps{ true };
+
+    // Clock to replace manual calculation
+    g_clock.setTargetFps(60);
+    g_clock.start();
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
-        // Calculate deltatime for framerate independent movement
-        currentFrameTime = glfwGetTime();
-        dt               = (currentFrameTime - lastFrameTime) * 1000;
-        lastFrameTime    = currentFrameTime;
+        // Measure whole frame time
+        g_clock.beginFrame();
+        timeElapsed += g_clock.getElapsedTime();
+        // Update Display of FPS text only after a certain time period so it is readable
+        if (timeElapsed > 2000) {
+            timeElapsed = 0;
+            currFps     = g_clock.getFps();
+        }
 
         // Process keyboard input --------------------------------------------------------------- //
         processInput(window);
-        g_currentTest->processInput(window, dt);
+        g_currentTest->processInput(window, g_clock.getDeltaTime() * 1000);
 
         // Render ------------------------------------------------------------------------------- //
         renderer.clear();
@@ -247,21 +256,53 @@ int main()
         ImGui::NewFrame();
 
         if (g_currentTest) {
-            g_currentTest->onUpdate(dt);
+            g_currentTest->onUpdate(g_clock.getDeltaTime() * 1000);
             g_currentTest->onRender();
 
             ImGui::Begin("Test Menu", 0, settings::windowFlags);
-            g_currentTest->onImGuiRender();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-            if (g_currentTest != g_testMenu
-                && ImGui::Button("Back To Main Menu", ImVec2(-FLT_MIN, 1.2 * ImGui::GetTextLineHeightWithSpacing())))
             {
-                delete g_currentTest;
-                g_currentTest = g_testMenu;
+                if (ImGui::CollapsingHeader("Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+                    g_currentTest->onImGuiRender();
+                    ImGui::Spacing();
+
+                    if (g_currentTest != g_testMenu) {
+                        ImGui::Spacing();
+                        ImGui::Separator();
+                        ImGui::Spacing();
+                        if (ImGui::Button("Back To Main Menu",
+                                          ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing())))
+                        {
+                            delete g_currentTest;
+                            g_currentTest = g_testMenu;
+                        }
+                        ImGui::Spacing();
+                    }
+                }
+
+                if (ImGui::CollapsingHeader("Performance Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+
+                    if (ImGui::Checkbox("Limit FPS", &limitFps)) {
+                        g_clock.setTargetFps(limitFps ? 60 : 0);
+                    }
+
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+
+                    ImGui::Text("FPS:");
+                    ImGui::SameLine();
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.2f", currFps);
+
+                    ImGui::Spacing();
+                }
+
+                if (ImGui::CollapsingHeader("Debug Options", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+                    ImGui::Checkbox("Show Demo Window", &g_showDemoWindow);
+                    ImGui::Spacing();
+                }
             }
-            ImGui::Checkbox("Show Demo Window", &g_showDemoWindow);
             ImGui::End();
         }
 
@@ -285,6 +326,9 @@ int main()
 
         // Poll for and process events
         glfwPollEvents();
+
+        // Measure whole frame time
+        g_clock.endFrame();
     }
 
     // TODO: Deallocate all objects after use --------------------------------------------------- //

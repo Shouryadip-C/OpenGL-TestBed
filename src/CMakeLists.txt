@@ -1,6 +1,7 @@
 set(
   OPENGL_TESTBED_SRC_FILES
   main.cpp
+  Clock.cpp
   Core.cpp
   Renderer.cpp
   VertexArray.cpp
@@ -17,6 +18,7 @@ set(
 set(
   OPENGL_TESTBED_HEADER_FILES
   DebugTrap.h
+  Clock.h
   Core.h
   Settings.h
   Glfw.h
