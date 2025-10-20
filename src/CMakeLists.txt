@@ -17,6 +17,7 @@ set(
 
 set(
   OPENGL_TESTBED_HEADER_FILES
+  GpuConfig.h
   DebugTrap.h
   Clock.h
   Core.h

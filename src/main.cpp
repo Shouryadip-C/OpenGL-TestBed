@@ -2,6 +2,7 @@
 #include "Clock.h"
 #include "Core.h"
 #include "Glfw.h"
+#include "GpuConfig.h"
 #include "IndexBuffer.h"
 #include "Renderer.h"
 #include "ScreenshotManager.h"
@@ -124,6 +125,16 @@ internal void processInput(GLFWwindow *window)
     wasSpacePressed = isSpaceDown;
 }
 
+internal void printGpuInfo()
+{
+    const GLubyte *renderer = glGetString(GL_RENDERER);  // GPU name
+    const GLubyte *vendor   = glGetString(GL_VENDOR);    // NVIDIA / AMD / Intel
+    const GLubyte *version  = glGetString(GL_VERSION);   // OpenGL version
+
+    std::cout << "GPU Vendor:   " << vendor << "\n";
+    std::cout << "GPU Renderer: " << renderer << "\n";
+    std::cout << "OpenGL Ver:   " << version << "\n";
+}
 
 int main()
 {
@@ -167,18 +178,23 @@ int main()
     // Make the window's context current
     glfwMakeContextCurrent(window);
 
+    // Disable Vsync
+    glfwSwapInterval(1);
+
     // Load GLAD opengl functions, gladLoadGLLoader() returns 0 if error occurs
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
+    // Print GPU info
+    printGpuInfo();
+
     // get the maximum number of vertex attributes we can specify in vertex shader
     // glgetversion gets the opengl version that is loaded
     int nAttributes;
     GL_CALL(glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nAttributes));
-    std::cout << glGetString(GL_VERSION) << "\n"
-              << "Max no. of vertex attributes is: " << nAttributes << std::endl;
+    std::cout << "Max no. of vertex attributes is: " << nAttributes << std::endl;
 
     // Imgui setup ------------------------------------------------------------------------------ //
     // Setup Dear ImGui context
@@ -225,8 +241,9 @@ int main()
 
     // Our state
     float currFps{ g_clock.getFps() };
-    float timeElapsed{ 0 };
+    float timeElapsed{ 400 };
     bool  limitFps{ true };
+    bool  enableVSync{ true };
 
     // Clock to replace manual calculation
     g_clock.setTargetFps(60);
@@ -236,9 +253,9 @@ int main()
     while (!glfwWindowShouldClose(window)) {
         // Measure whole frame time
         g_clock.beginFrame();
-        timeElapsed += g_clock.getElapsedTime();
+        timeElapsed += g_clock.getDeltaTime() * 1000;
         // Update Display of FPS text only after a certain time period so it is readable
-        if (timeElapsed > 2000) {
+        if (timeElapsed > 500.0f) {
             timeElapsed = 0;
             currFps     = g_clock.getFps();
         }
@@ -281,6 +298,11 @@ int main()
                 }
 
                 if (ImGui::CollapsingHeader("Performance Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+                    ImGui::Spacing();
+
+                    if (ImGui::Checkbox("Enable VSync", &enableVSync)) {
+                        glfwSwapInterval(enableVSync ? 1 : 0);
+                    }
                     ImGui::Spacing();
 
                     if (ImGui::Checkbox("Limit FPS", &limitFps)) {
