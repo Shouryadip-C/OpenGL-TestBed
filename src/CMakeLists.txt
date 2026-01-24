@@ -1,3 +1,5 @@
+add_subdirectory(cuda_utils)
+
 set(
   OPENGL_TESTBED_SRC_FILES
   main.cpp
@@ -42,6 +44,7 @@ set_target_properties(
   opengl_testbed
   PROPERTIES  CXX_STANDARD 20
               CXX_STANDARD_REQUIRED YES
+              CUDA_RESOLVE_DEVICE_SYMBOLS ON
               CXX_EXTENSIONS NO
 )
 
@@ -56,6 +59,9 @@ target_link_libraries(
   stb_image
   assimp
   ${OPENGL_LIBRARIES}
+  $<TARGET_OBJECTS:cuda_utils>
+  CUDA::cudart
+  CUDA::cuda_driver
 )
 
 target_include_directories(
@@ -64,6 +70,7 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_SOURCE_DIR}/extern/assimp/include
     ${CMAKE_BINARY_DIR}/extern/assimp/include
+    ${CUDAToolkit_INCLUDE_DIRS}
 )
 
 # *** Copy resources directory to the build directory

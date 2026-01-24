@@ -72,7 +72,9 @@ Texture::Texture(const std::filesystem::path &path)
 
 Texture::~Texture()
 {
+    GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
     GL_CALL(glDeleteTextures(1, &m_rendererID));
+    GL_CALL(glActiveTexture(GL_TEXTURE0));
 }
 
 void Texture::bind(unsigned int slot) const

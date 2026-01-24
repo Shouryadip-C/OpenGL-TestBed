@@ -17,6 +17,7 @@
 #include "tests/TestCamera.h"
 #include "tests/TestClearColor.h"
 #include "tests/TestCubes.h"
+#include "tests/TestCuda.h"
 #include "tests/TestModels.h"
 
 // Third party headers
@@ -125,6 +126,7 @@ internal void processInput(GLFWwindow *window)
     wasSpacePressed = isSpaceDown;
 }
 
+
 internal void printGpuInfo()
 {
     const GLubyte *renderer = glGetString(GL_RENDERER);  // GPU name
@@ -135,6 +137,7 @@ internal void printGpuInfo()
     std::cout << "GPU Renderer: " << renderer << "\n";
     std::cout << "OpenGL Ver:   " << version << "\n";
 }
+
 
 int main()
 {
@@ -229,6 +232,7 @@ int main()
     g_testMenu->registerTest<tests::TestCubes>("3D Rotating Cubes");
     g_testMenu->registerTest<tests::TestCamera>("Movable 3D Camera");
     g_testMenu->registerTest<tests::TestModels>("Model Loading");
+    g_testMenu->registerTest<tests::TestCuda>("Cuda Simulation");
 
     // enable blending
     GL_CALL(glEnable(GL_BLEND));
@@ -244,9 +248,11 @@ int main()
     float timeElapsed{ 400 };
     bool  limitFps{ true };
     bool  enableVSync{ true };
+    // Setting fpsLimit to 0 -> unlimited FPS
+    int fpsLimit{ 60 };
 
     // Clock to replace manual calculation
-    g_clock.setTargetFps(60);
+    g_clock.setTargetFps(fpsLimit);
     g_clock.start();
 
     // Loop until the user closes the window
@@ -306,7 +312,7 @@ int main()
                     ImGui::Spacing();
 
                     if (ImGui::Checkbox("Limit FPS", &limitFps)) {
-                        g_clock.setTargetFps(limitFps ? 60 : 0);
+                        g_clock.setTargetFps(limitFps ? fpsLimit : 0);
                     }
 
                     ImGui::Spacing();
@@ -315,6 +321,10 @@ int main()
                     ImGui::Text("FPS:");
                     ImGui::SameLine();
                     ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.2f", currFps);
+                    ImGui::Spacing();
+                    if (ImGui::SliderInt("Set FPS", &fpsLimit, 10, 300)) {
+                        g_clock.setTargetFps(limitFps ? fpsLimit : 0);
+                    }
 
                     ImGui::Spacing();
                 }
