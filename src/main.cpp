@@ -141,6 +141,10 @@ internal void printGpuInfo()
 
 int main()
 {
+    // Set error callback before using glfw
+    glfwSetErrorCallback([](int error, const char *description)
+                         { std::cerr << "GLFW Error (" << error << ") - " << description << "\n"; });
+
     // Initialize the library
     if (!glfwInit()) {
         return -1;

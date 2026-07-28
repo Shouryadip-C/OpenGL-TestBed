@@ -29,6 +29,7 @@ target_link_libraries(
   cuda_utils
   PRIVATE
     glad
+    curand
     ${OPENGL_LIBRARIES}
 )
 

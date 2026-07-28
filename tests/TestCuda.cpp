@@ -13,6 +13,23 @@
 
 namespace tests {
 
+void TestCuda::switchSimulation(SimulationType sim)
+{
+    // Cleanup current simulation
+    switch (m_currentSimulation) {
+        case SimulationType::Forest: cleanupForestSimulation(); break;
+        case SimulationType::GameOfLife: cleanupLifeSimulation(); break;
+    }
+
+    m_currentSimulation = sim;
+
+    // Initialize new simulation
+    switch (m_currentSimulation) {
+        case SimulationType::Forest: initForestSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+        case SimulationType::GameOfLife: initLifeSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+    }
+}
+
 TestCuda::TestCuda() : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f)
 {
     GL_CALL(glGenBuffers(1, &m_pbo));
@@ -56,12 +73,21 @@ TestCuda::TestCuda() : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f)
     m_VAO->addBuffer(*m_vertexBuffer, layout);
     m_VAO->addBuffer(*m_indexBuffer);
 
-    initLifeSimulation(settings::windowWidth, settings::windowHeight, 8);
+    // Initialize new simulation
+    switch (m_currentSimulation) {
+        case SimulationType::Forest: initForestSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+
+        case SimulationType::GameOfLife: initLifeSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+    }
 }
 
 TestCuda::~TestCuda()
 {
-    cleanupLifeSimulation();
+    switch (m_currentSimulation) {
+        case SimulationType::Forest: cleanupForestSimulation(); break;
+
+        case SimulationType::GameOfLife: cleanupLifeSimulation(); break;
+    }
     CUDA_CHECK(cudaGraphicsUnregisterResource(m_cudaPboResource));
     GL_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
     GL_CALL(glDeleteBuffers(1, &m_pbo));
@@ -81,8 +107,15 @@ void TestCuda::onUpdate(float deltaTime)
     CUDA_CHECK(cudaGraphicsResourceGetMappedPointer((void **)&devPtr, &size, m_cudaPboResource));
 
     // Run CUDA kernel
-    runLifeSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
-    // runSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
+    switch (m_currentSimulation) {
+        case SimulationType::Forest:
+            runForestSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
+            break;
+
+        case SimulationType::GameOfLife:
+            runLifeSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
+            break;
+    }
 
     // Unmap CUDA resource so OpenGL can use it
     CUDA_CHECK(cudaGraphicsUnmapResources(1, &m_cudaPboResource, 0));
@@ -108,6 +141,17 @@ void TestCuda::onImGuiRender()
     ImGui::Spacing();
     ImGui::ColorEdit4("Clear Color", m_clearColor);
     ImGui::Spacing();
+
+    ImGui::Separator();
+    ImGui::Text("Simulations");
+
+    if (ImGui::Button("Forest Fire", ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing()))) {
+        switchSimulation(SimulationType::Forest);
+    }
+
+    if (ImGui::Button("Game of Life", ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing()))) {
+        switchSimulation(SimulationType::GameOfLife);
+    }
 }
 
 }  // namespace tests

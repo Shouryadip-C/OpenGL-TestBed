@@ -16,6 +16,8 @@
 
 namespace tests {
 
+enum class SimulationType { Forest, GameOfLife };
+
 class TestCuda: public Test
 {
 private:
@@ -31,6 +33,8 @@ private:
     std::unique_ptr<VertexArray>  m_VAO;
     std::unique_ptr<Shader>       m_shader;
 
+    SimulationType m_currentSimulation = SimulationType::Forest;
+
 public:
     TestCuda();
     ~TestCuda() override;
@@ -38,6 +42,8 @@ public:
     void onUpdate(float deltaTime) override;
     void onRender() override;
     void onImGuiRender() override;
+
+    void switchSimulation(SimulationType sim);
 };
 
 }  // namespace tests
