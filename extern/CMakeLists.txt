@@ -20,7 +20,10 @@ add_subdirectory(glfw)
 add_subdirectory(stb_image)
 
 # GLM ------------------------------------------------------------------------ #
+# the vendored glm asks for cmake 3.2, which cmake >= 4.0 refuses to configure without this
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 add_subdirectory(glm)
+unset(CMAKE_POLICY_VERSION_MINIMUM)
 
 # IMGUI ---------------------------------------------------------------------- #
 set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)

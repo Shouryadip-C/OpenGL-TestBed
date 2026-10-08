@@ -115,7 +115,8 @@ void TestModels::onRender()
         projection = m_proj3D;
     }
 
-    // sending data to shader
+    // sending data to shader, glUniform* applies to the currently bound program
+    m_shader->bind();
     m_shader->setUniformMat4f("view", 1, GL_FALSE, glm::value_ptr(m_view));
     m_shader->setUniformMat4f("projection", 1, GL_FALSE, glm::value_ptr(projection));
 

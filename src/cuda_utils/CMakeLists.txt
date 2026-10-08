@@ -1,6 +1,7 @@
 set(
   CUDA_SRC_FILES
   Simulations.cu
+  LBMSimulation.cu
 )
 
 set(
@@ -20,7 +21,6 @@ target_compile_options(
 set_target_properties(
   cuda_utils
   PROPERTIES
-    CUDA_ARCHITECTURES 89
     CUDA_SEPARABLE_COMPILATION ON
     CUDA_RESOLVE_DEVICE_SYMBOLS ON
 )

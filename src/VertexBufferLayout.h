@@ -34,40 +34,40 @@ public:
     VertexBufferLayout() : m_stride(0) {}
     ~VertexBufferLayout() {}
 
+    // Only the specializations below are defined, using any other type is a compile error
     template<typename T>
-    void push(unsigned int count)
-    {
-        static_assert(sizeof(T) != sizeof(T), "Must use template specialization!");
-    }
-
-    template<>
-    void push<float>(unsigned int count)
-    {
-        m_elements.push_back({ GL_FLOAT, count, GL_FALSE });
-        m_stride += count * VertexBufferElement::getSizeOfType(GL_FLOAT);
-    }
-
-    template<>
-    void push<int>(unsigned int count)
-    {
-        m_elements.push_back({ GL_INT, count, GL_FALSE });
-        m_stride += count * VertexBufferElement::getSizeOfType(GL_INT);
-    }
-
-    template<>
-    void push<unsigned int>(unsigned int count)
-    {
-        m_elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
-        m_stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_INT);
-    }
-
-    template<>
-    void push<unsigned char>(unsigned int count)
-    {
-        m_elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
-        m_stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_BYTE);
-    }
+    void push(unsigned int count) = delete;
 
     inline const std::vector<VertexBufferElement> &getElements() const { return m_elements; };
     inline unsigned int                            getStride() const { return m_stride; };
 };
+
+
+// Explicit specializations have to live at namespace scope, GCC rejects them inside the class body
+template<>
+inline void VertexBufferLayout::push<float>(unsigned int count)
+{
+    m_elements.push_back({ GL_FLOAT, count, GL_FALSE });
+    m_stride += count * VertexBufferElement::getSizeOfType(GL_FLOAT);
+}
+
+template<>
+inline void VertexBufferLayout::push<int>(unsigned int count)
+{
+    m_elements.push_back({ GL_INT, count, GL_FALSE });
+    m_stride += count * VertexBufferElement::getSizeOfType(GL_INT);
+}
+
+template<>
+inline void VertexBufferLayout::push<unsigned int>(unsigned int count)
+{
+    m_elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
+    m_stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_INT);
+}
+
+template<>
+inline void VertexBufferLayout::push<unsigned char>(unsigned int count)
+{
+    m_elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
+    m_stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_BYTE);
+}

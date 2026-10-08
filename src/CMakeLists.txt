@@ -1,4 +1,6 @@
-add_subdirectory(cuda_utils)
+if(TESTBED_ENABLE_CUDA)
+  add_subdirectory(cuda_utils)
+endif()
 
 set(
   OPENGL_TESTBED_SRC_FILES
@@ -48,6 +50,9 @@ set_target_properties(
               CXX_EXTENSIONS NO
 )
 
+# DEBUG switches GL_CALL (src/Core.h) to its error-checking form
+target_compile_definitions(opengl_testbed PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+
 target_link_libraries(
   opengl_testbed
   tests
@@ -59,9 +64,6 @@ target_link_libraries(
   stb_image
   assimp
   ${OPENGL_LIBRARIES}
-  $<TARGET_OBJECTS:cuda_utils>
-  CUDA::cudart
-  CUDA::cuda_driver
 )
 
 target_include_directories(
@@ -70,8 +72,17 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_SOURCE_DIR}/extern/assimp/include
     ${CMAKE_BINARY_DIR}/extern/assimp/include
-    ${CUDAToolkit_INCLUDE_DIRS}
 )
+
+if(TESTBED_ENABLE_CUDA)
+  target_link_libraries(
+    opengl_testbed
+    $<TARGET_OBJECTS:cuda_utils>
+    CUDA::cudart
+    CUDA::cuda_driver
+  )
+  target_include_directories(opengl_testbed PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+endif()
 
 # *** Copy resources directory to the build directory
 # copying the imgui.ini file restores the layout of the imgui viewports previously used

@@ -19,18 +19,26 @@ void TestCuda::switchSimulation(SimulationType sim)
     switch (m_currentSimulation) {
         case SimulationType::Forest: cleanupForestSimulation(); break;
         case SimulationType::GameOfLife: cleanupLifeSimulation(); break;
+        case SimulationType::LBM: cleanupLBMSimulation(); break;
     }
 
     m_currentSimulation = sim;
+
+    // Reset LBM input state so we don't carry a mouse drag
+    // from one simulation into another.
+    m_lbmMouse = {};
 
     // Initialize new simulation
     switch (m_currentSimulation) {
         case SimulationType::Forest: initForestSimulation(settings::windowWidth, settings::windowHeight, 8); break;
         case SimulationType::GameOfLife: initLifeSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+        case SimulationType::LBM: initLBMSimulation(settings::windowWidth, settings::windowHeight, 4); break;
     }
 }
 
-TestCuda::TestCuda() : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f)
+
+TestCuda::TestCuda()
+  : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f), m_pbo(0), m_textureId(0), m_cudaPboResource(nullptr)
 {
     GL_CALL(glGenBuffers(1, &m_pbo));
     GL_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo));
@@ -54,11 +62,16 @@ TestCuda::TestCuda() : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f)
     m_shader->bind();
     m_shader->setUniform1i("screenTexture", 0);
 
+    // clang-format off
     // Fullscreen quad (NDC coordinates: -1 to 1)
-    float quadVertices[] = { // positions     // texCoords
-                             -1.0f, -1.0f, 0.0f, 0.0f, 1.0f,  -1.0f, 1.0f, 0.0f,
-                             1.0f,  1.0f,  1.0f, 1.0f, -1.0f, 1.0f,  0.0f, 1.0f
+    float quadVertices[] = {
+        // positions  // texCoords
+        -1.0f, -1.0f, 0.0f, 1.0f,
+        1.0f,  -1.0f, 1.0f, 1.0f,
+        1.0f,  1.0f,  1.0f, 0.0f,
+        -1.0f, 1.0f,  0.0f, 0.0f
     };
+    // clang-format on
 
     unsigned int quadIndices[] = { 0, 1, 2, 2, 3, 0 };
 
@@ -76,8 +89,8 @@ TestCuda::TestCuda() : m_clearColor{ 0.1f, 0.3f, 0.5f, 1.0f }, m_time(0.0f)
     // Initialize new simulation
     switch (m_currentSimulation) {
         case SimulationType::Forest: initForestSimulation(settings::windowWidth, settings::windowHeight, 8); break;
-
         case SimulationType::GameOfLife: initLifeSimulation(settings::windowWidth, settings::windowHeight, 8); break;
+        case SimulationType::LBM: initLBMSimulation(settings::windowWidth, settings::windowHeight, 4); break;
     }
 }
 
@@ -85,8 +98,8 @@ TestCuda::~TestCuda()
 {
     switch (m_currentSimulation) {
         case SimulationType::Forest: cleanupForestSimulation(); break;
-
         case SimulationType::GameOfLife: cleanupLifeSimulation(); break;
+        case SimulationType::LBM: cleanupLBMSimulation(); break;
     }
     CUDA_CHECK(cudaGraphicsUnregisterResource(m_cudaPboResource));
     GL_CALL(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
@@ -97,7 +110,7 @@ TestCuda::~TestCuda()
 
 void TestCuda::onUpdate(float deltaTime)
 {
-    m_time += 0.016f;
+    m_time += deltaTime;
 
     uint32_t *devPtr = nullptr;
     size_t    size   = 0;
@@ -111,9 +124,11 @@ void TestCuda::onUpdate(float deltaTime)
         case SimulationType::Forest:
             runForestSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
             break;
-
         case SimulationType::GameOfLife:
             runLifeSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time);
+            break;
+        case SimulationType::LBM:
+            runLBMSimulationStep(devPtr, settings::windowWidth, settings::windowHeight, m_time, m_lbmMouse);
             break;
     }
 
@@ -148,9 +163,92 @@ void TestCuda::onImGuiRender()
     if (ImGui::Button("Forest Fire", ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing()))) {
         switchSimulation(SimulationType::Forest);
     }
-
     if (ImGui::Button("Game of Life", ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing()))) {
         switchSimulation(SimulationType::GameOfLife);
+    }
+    if (ImGui::Button("Lattice Boltzmann", ImVec2(-FLT_MIN, 1.2f * ImGui::GetTextLineHeightWithSpacing()))) {
+        switchSimulation(SimulationType::LBM);
+    }
+
+    if (m_currentSimulation == SimulationType::LBM) {
+        ImGui::Separator();
+        ImGui::Text("LBM Controls");
+        ImGui::Text("Left Drag   : Stir fluid");
+        ImGui::Text("Right Drag  : Add obstacle");
+        ImGui::Text("Middle Drag : Remove obstacle");
+        ImGui::Text("Color       : Velocity magnitude");
+    }
+}
+
+void TestCuda::processMouseClick(GLFWwindow *window, int button, int action, int mods)
+{
+    if (m_currentSimulation != SimulationType::LBM) {
+        return;
+    }
+
+    if (action != GLFW_PRESS && action != GLFW_RELEASE) {
+        return;
+    }
+
+    bool pressed = (action == GLFW_PRESS);
+
+    if (pressed) {
+        m_lbmMouse.previousX = m_lbmMouse.x;
+        m_lbmMouse.previousY = m_lbmMouse.y;
+    }
+
+    switch (button) {
+        case GLFW_MOUSE_BUTTON_LEFT: m_lbmMouse.left = pressed; break;
+        case GLFW_MOUSE_BUTTON_RIGHT: m_lbmMouse.right = pressed; break;
+        case GLFW_MOUSE_BUTTON_MIDDLE: m_lbmMouse.middle = pressed; break;
+        default: break;
+    }
+}
+
+// Mouse movement
+void TestCuda::processMouseMovement(GLFWwindow *window, float xPos, float yPos)
+{
+    if (m_currentSimulation != SimulationType::LBM) {
+        return;
+    }
+
+    m_lbmMouse.previousX = m_lbmMouse.x;
+    m_lbmMouse.previousY = m_lbmMouse.y;
+    m_lbmMouse.x         = xPos;
+    m_lbmMouse.y         = yPos;
+}
+
+// Mouse scroll
+void TestCuda::processMouseScroll(GLFWwindow *window, float xPos, float yPos)
+{
+    if (m_currentSimulation != SimulationType::LBM) {
+        return;
+    }
+
+    // Nothing for now.
+    //
+    // Later this can control:
+    //     - brush radius
+    //     - injection strength
+    //     - visualization scale
+}
+
+// Keyboard input
+void TestCuda::processInput(GLFWwindow *window, const float deltaTime)
+{
+    if (window == nullptr) {
+        return;
+    }
+
+    // Reserved for future LBM controls.
+    if (m_currentSimulation == SimulationType::LBM) {
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            // Reset LBM later.
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            // Pause/resume later.
+        }
     }
 }
 

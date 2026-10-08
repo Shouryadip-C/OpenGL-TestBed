@@ -2,7 +2,6 @@ set(
   TEST_SOURCE_FILES
   Test.cpp
   TestClearColor.cpp
-  TestCuda.cpp
   TestCubes.cpp
   Test2DTransforms.cpp
   TestCamera.cpp
@@ -13,12 +12,16 @@ set(
   TEST_HEADER_FILES
   Test.h
   TestClearColor.h
-  TestCuda.h
   TestCubes.h
   Test2DTransforms.h
   TestCamera.h
   TestModels.h
 )
+
+if(TESTBED_ENABLE_CUDA)
+  list(APPEND TEST_SOURCE_FILES TestCuda.cpp)
+  list(APPEND TEST_HEADER_FILES TestCuda.h)
+endif()
 
 add_library(tests STATIC ${TEST_SOURCE_FILES} ${TEST_HEADER_FILES})
 
@@ -30,6 +33,9 @@ set_target_properties(
               CXX_EXTENSIONS NO
 )
 
+# DEBUG switches GL_CALL (src/Core.h) to its error-checking form
+target_compile_definitions(tests PRIVATE $<$<CONFIG:Debug>:DEBUG>)
+
 target_link_libraries(
   tests
   glad
@@ -38,9 +44,6 @@ target_link_libraries(
   imgui
   stb_image
   ${OPENGL_LIBRARIES}
-  $<TARGET_OBJECTS:cuda_utils>
-  CUDA::cudart
-  CUDA::cuda_driver
 )
 
 target_include_directories(
@@ -51,5 +54,16 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/extern/assimp/include
     ${CMAKE_BINARY_DIR}/extern/assimp/include
-    ${CUDAToolkit_INCLUDE_DIRS}
 )
+
+if(TESTBED_ENABLE_CUDA)
+  target_link_libraries(
+    tests
+    $<TARGET_OBJECTS:cuda_utils>
+    CUDA::cudart
+    CUDA::cuda_driver
+  )
+  target_include_directories(tests PUBLIC ${CUDAToolkit_INCLUDE_DIRS})
+  # lets the application know whether the cuda tests exist
+  target_compile_definitions(tests PUBLIC TESTBED_HAS_CUDA)
+endif()
