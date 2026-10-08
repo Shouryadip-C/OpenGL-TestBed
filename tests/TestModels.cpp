@@ -138,11 +138,13 @@ void TestModels::onImGuiRender()
 
     // Render a button to open the file dialog
     if (ImGui::Button("Choose Obj File")) {
+        IGFD::FileDialogConfig config;
+        config.path = assets::path("models").string();  // starting directory
+
         ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",  // dialog key
                                                 "Choose a File",     // title
                                                 ".*",                // filter (accept all)
-                                                { assets::path("models").string() }  // starting directory
-        );
+                                                config);
     }
     ImGui::Spacing();
 

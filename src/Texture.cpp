@@ -11,19 +11,23 @@ unsigned int loadTextureFromFile(const std::filesystem::path &path)
     glGenTextures(1, &textureID);
 
     int            width, height, nrComponents;
-    unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrComponents, 0);
+    unsigned char *data = stbi_load(path.string().c_str(), &width, &height, &nrComponents, 0);
     if (data) {
-        GLenum format;
+        // stb_image returns 1 (grey), 2 (grey + alpha), 3 (rgb) or 4 (rgba) components
+        GLenum format = GL_RGBA;
         if (nrComponents == 1)
             format = GL_RED;
+        else if (nrComponents == 2)
+            format = GL_RG;
         else if (nrComponents == 3)
             format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
 
+        // rows of 1, 2 and 3 component images are not always a multiple of the default 4 byte alignment
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

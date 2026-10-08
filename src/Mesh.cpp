@@ -2,13 +2,14 @@
 
 #include "Renderer.h"
 
+#include <utility>
 
-Mesh::Mesh(std::vector<MeshVertex> vertices, std::vector<unsigned int> indices, std::vector<MeshTexture> textures)
+
+Mesh::Mesh(std::vector<MeshVertex>   meshVertices,
+           std::vector<unsigned int> meshIndices,
+           std::vector<MeshTexture>  meshTextures)
+  : vertices(std::move(meshVertices)), indices(std::move(meshIndices)), textures(std::move(meshTextures))
 {
-    this->vertices = vertices;
-    this->indices  = indices;
-    this->textures = textures;
-
     m_VAO          = std::make_unique<VertexArray>();
     m_vertexBuffer = std::make_unique<VertexBuffer>(vertices.data(), vertices.size() * sizeof(MeshVertex));
     m_indexBuffer  = std::make_unique<IndexBuffer>(indices.data(), indices.size());

@@ -49,7 +49,7 @@ global_var tests::Test *g_currentTest{ nullptr };
 global_var tests::TestMenu *g_testMenu{ nullptr };
 
 
-// function opengl calls every time an error occurs
+// function opengl calls every time the driver has a debug message (errors, warnings, performance hints)
 internal void APIENTRY errorCallback(unsigned int source,
                                      unsigned int type,
                                      unsigned int id,
@@ -58,8 +58,32 @@ internal void APIENTRY errorCallback(unsigned int source,
                                      const char  *message,
                                      const void  *userParam)
 {
-    std::cerr << severity << ": " << id << "\n" << message << "\n";
-    DEBUG_BREAK();
+    // drivers report routine information (e.g. where a buffer was allocated) at this level
+    if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
+        return;
+    }
+
+    const char *typeName = "Other";
+    switch (type) {
+        case GL_DEBUG_TYPE_ERROR: typeName = "Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeName = "Deprecated behavior"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeName = "Undefined behavior"; break;
+        case GL_DEBUG_TYPE_PORTABILITY: typeName = "Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE: typeName = "Performance"; break;
+        default: break;
+    }
+
+    const char *severityName = "low";
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        severityName = "high";
+    }
+    else if (severity == GL_DEBUG_SEVERITY_MEDIUM) {
+        severityName = "medium";
+    }
+
+    // Only logs: GL_CALL does the trapping in debug builds and also knows the file and line
+    std::cerr << "[OpenGL Debug] " << typeName << " (" << id << ", severity " << severityName << ")\n"
+              << message << "\n";
 }
 
 
@@ -200,6 +224,12 @@ int main()
 
     // Print GPU info
     printGpuInfo();
+
+    // Have the driver describe errors through errorCallback. Synchronous output makes the callback run
+    // inside the offending gl call, so its message appears right before the matching GL_CALL report.
+    GL_CALL(glEnable(GL_DEBUG_OUTPUT));
+    GL_CALL(glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS));
+    GL_CALL(glDebugMessageCallback(errorCallback, nullptr));
 
     // get the maximum number of vertex attributes we can specify in vertex shader
     // glgetversion gets the opengl version that is loaded

@@ -22,7 +22,7 @@ void VertexArray::addBuffer(const VertexBuffer &vb, const VertexBufferLayout &la
 
     const auto  &elements{ layout.getElements() };
     unsigned int offset{ 0 };
-    for (int i = 0; i < elements.size(); i++) {
+    for (unsigned int i = 0; i < elements.size(); i++) {
         const auto &element{ elements[i] };
         switch (element.type) {
             case GL_UNSIGNED_INT:
