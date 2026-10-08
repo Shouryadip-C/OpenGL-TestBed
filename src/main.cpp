@@ -1,4 +1,5 @@
 // Local headers
+#include "Assets.h"
 #include "Clock.h"
 #include "Core.h"
 #include "Glfw.h"
@@ -32,6 +33,7 @@
 
 // Standard lib headers
 #include <iostream>
+#include <string>
 
 
 #define internal      static
@@ -211,6 +213,9 @@ int main()
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
+    // keep the layout file next to the executable, ImGui stores the pointer so the string has to outlive it
+    static const std::string imguiIniPath = (assets::executableDir() / "imgui.ini").string();
+    io.IniFilename                        = imguiIniPath.c_str();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows

@@ -1,5 +1,6 @@
 #include "TestCubes.h"
 
+#include "Assets.h"
 #include "Core.h"
 #include "Glfw.h"
 #include "Renderer.h"
@@ -32,14 +33,14 @@ TestCubes::TestCubes()
     m_view(glm::translate(glm::mat4(1.0f), m_cameraPos))
 {
     // TODO: check if texture binding problems occur on copy construction of Texture object
-    m_textures.push_back(std::make_unique<Texture>("../res/textures/awesomeface.png"));
-    m_textures.push_back(std::make_unique<Texture>("../res/textures/hells_paradise.jpg"));
+    m_textures.push_back(std::make_unique<Texture>(assets::path("textures/awesomeface.png")));
+    m_textures.push_back(std::make_unique<Texture>(assets::path("textures/hells_paradise.jpg")));
 
     for (unsigned int i = 0; i < m_textures.size(); i++) {
         m_textures[i]->bind(i);
     }
 
-    m_shader = std::make_unique<Shader>("../res/shader/cube_shader.glsl");
+    m_shader = std::make_unique<Shader>(assets::path("shader/cube_shader.glsl"));
     m_shader->bind();
     m_shader->setUniform1i("u_texture1", 0);
     m_shader->setUniform1i("u_texture2", 1);

@@ -91,5 +91,12 @@ if(UNIX)
     target_compile_options(ImGuiFileDialog PUBLIC -Wno-unknown-pragmas)
 endif()
 
-# GLM ------------------------------------------------------------------------ #
+# ASSIMP --------------------------------------------------------------------- #
+# its unit tests and install rules are not needed here and take a large part of the build time
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory(assimp)
+
+# Headers of the third-party targets count as system headers for everything that links them,
+# so the warning flags of our own targets do not report issues inside them
+set_target_properties(glad glfw glm stb_image imgui ImGuiFileDialog assimp PROPERTIES SYSTEM TRUE)

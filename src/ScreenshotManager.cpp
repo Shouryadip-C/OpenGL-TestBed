@@ -1,5 +1,6 @@
 #include "ScreenshotManager.h"
 
+#include "Assets.h"
 #include "Core.h"
 #include <stb_image/stb_image_write.h>
 
@@ -24,10 +25,10 @@ std::string ScreenshotManager::generateFilename()
     auto ms   = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
     std::stringstream ss;
-    ss << "../screenshots/screenshot_" << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S_") << std::setfill('0')
-       << std::setw(3) << ms.count() << ".png";
+    ss << "screenshot_" << std::put_time(std::localtime(&time), "%Y%m%d_%H%M%S_") << std::setfill('0') << std::setw(3)
+       << ms.count() << ".png";
 
-    return ss.str();
+    return (assets::rootDir() / "screenshots" / ss.str()).string();
 }
 
 // Capture and save screenshot

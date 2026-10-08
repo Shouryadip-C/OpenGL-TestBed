@@ -1,5 +1,6 @@
 #include "TestCuda.h"
 
+#include "Assets.h"
 #include "Core.h"
 #include "Renderer.h"
 #include "Settings.h"
@@ -58,7 +59,7 @@ TestCuda::TestCuda()
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
-    m_shader = std::make_unique<Shader>("../res/shader/fullscreen_quad.glsl");
+    m_shader = std::make_unique<Shader>(assets::path("shader/fullscreen_quad.glsl"));
     m_shader->bind();
     m_shader->setUniform1i("screenTexture", 0);
 

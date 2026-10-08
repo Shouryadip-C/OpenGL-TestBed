@@ -33,6 +33,8 @@ set_target_properties(
               CXX_EXTENSIONS NO
 )
 
+testbed_set_warnings(tests)
+
 # DEBUG switches GL_CALL (src/Core.h) to its error-checking form
 target_compile_definitions(tests PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 

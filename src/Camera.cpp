@@ -4,13 +4,13 @@
 
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, const float yaw, const float pitch)
-  : m_position(position),
-    m_worldUp(up),
-    m_yaw(yaw),
-    m_pitch(pitch),
-    zoom(settings::camera::zoom),
+  : mouseSensitivity(settings::camera::mouseSensitivity),
     movementSpeed(settings::camera::movementSpeed),
-    mouseSensitivity(settings::camera::mouseSensitivity)
+    zoom(settings::camera::zoom),
+    m_pitch(pitch),
+    m_yaw(yaw),
+    m_position(position),
+    m_worldUp(up)
 {
     updateDirectionVectors();
 }

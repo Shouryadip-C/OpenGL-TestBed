@@ -1,5 +1,6 @@
 #include "TestModels.h"
 
+#include "Assets.h"
 #include "Core.h"
 #include "Glfw.h"
 #include "Renderer.h"
@@ -24,16 +25,16 @@ TestModels::TestModels()
     m_lastXPos(0.0f),
     m_lastYPos(0.0f),
     m_lastScroll(0.0f),
-    m_objFilePath("../res/models/backpack/backpack.obj"),
+    m_objFilePath(assets::path("models/backpack/backpack.obj")),
     m_proj2D(glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.0f, 20.0f)),
     m_proj3D(glm::perspective(glm::radians(settings::camera::zoom),
                               (float)settings::windowWidth / (float)settings::windowHeight,
                               0.1f,
                               100.0f)),
-    m_camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-    m_view(glm::mat4(1.0f))
+    m_view(glm::mat4(1.0f)),
+    m_camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f))
 {
-    m_shader = std::make_unique<Shader>("../res/shader/model_shader.glsl");
+    m_shader = std::make_unique<Shader>(assets::path("shader/model_shader.glsl"));
 
     m_model = std::make_unique<Model>(m_objFilePath);
 
@@ -140,7 +141,7 @@ void TestModels::onImGuiRender()
         ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",  // dialog key
                                                 "Choose a File",     // title
                                                 ".*",                // filter (accept all)
-                                                { "../" }            // starting directory
+                                                { assets::path("models").string() }  // starting directory
         );
     }
     ImGui::Spacing();

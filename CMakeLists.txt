@@ -53,6 +53,8 @@ if(NOT CMAKE_CUDA_COMPILER)
 endif()
 
 # Add target subdirectories -------------------------------------------------- #
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(Warnings)
 
 add_subdirectory(extern)
 add_subdirectory(tests)
