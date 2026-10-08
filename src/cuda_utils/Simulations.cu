@@ -10,9 +10,10 @@
 
 enum ForestCellState : unsigned char { EMPTY = 0, TREE = 1, BURNING = 2 };
 
-__device__ unsigned char *d_cells = nullptr;
-__device__ unsigned char *d_next  = nullptr;
-curandState              *d_rand  = nullptr;
+// host-side pointers to device memory, the kernels receive them as arguments
+static unsigned char *d_cells = nullptr;
+static unsigned char *d_next  = nullptr;
+curandState          *d_rand  = nullptr;
 
 static int gridWidth  = 0;
 static int gridHeight = 0;

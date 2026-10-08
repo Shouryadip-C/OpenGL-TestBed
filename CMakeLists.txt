@@ -18,9 +18,8 @@ endif()
 # Enabled by default only when a working CUDA compiler is found, so the project still builds
 # on machines without an NVIDIA GPU. Force it with -DTESTBED_ENABLE_CUDA=ON/OFF.
 #
-# nvcc only supports specific host compiler versions. If the system default is too new, point it
-# at a supported one when configuring, e.g. -DCMAKE_CUDA_HOST_COMPILER=/usr/bin/g++-13
-# (or the CUDAHOSTCXX environment variable).
+# nvcc only supports specific host compiler versions. If the system default is too new for the installed
+# toolkit, point it at an older one with -DCMAKE_CUDA_HOST_COMPILER=<path> or the CUDAHOSTCXX environment variable.
 include(CheckLanguage)
 if(CMAKE_CUDA_HOST_COMPILER)
   # check_language() runs in a separate cmake process that only sees the environment variable
